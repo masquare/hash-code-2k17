@@ -31,10 +31,24 @@ public class Cache {
 
   public List<Video> getVideos() { return videos; }
 
+  public boolean containsVideo(int id){
+    return videos.parallelStream().anyMatch(v -> v.getId() == id);
+  }
+
   public void setVideos(List<Video> videos) throws Exception {
     if(videos.stream().mapToInt(Video::getSize).sum() > this.size)
       throw new Exception("Videos do not fit in");
 
     this.videos = videos;
+  }
+
+  @Override
+  public String toString() {
+    return "Cache{" +
+        "id=" + id +
+        ", size=" + size +
+        ", filled=" + videos.stream().mapToInt(Video::getSize).sum() +
+        ", videos=" + videos.size() +
+        '}';
   }
 }
