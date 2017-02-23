@@ -22,10 +22,12 @@ public class Scenario {
 
     int videoCount, endpointCount, requestCount, cacheCount, cacheCapacity;
     Datacenter datacenter;
+    ArrayList<Cache> caches;
     ArrayList<Endpoint> endpoints;
 
     public Scenario(String filename) throws IOException {
         datacenter = new Datacenter();
+        caches = new ArrayList<>();
         endpoints = new ArrayList<>();
 
         // Read from the input file.
@@ -39,6 +41,11 @@ public class Scenario {
             requestCount = values.get(2);
             cacheCount = values.get(3);
             cacheCapacity = values.get(4);
+
+            // Create the caches.
+            for (int i = 0; i < cacheCount; i++) {
+                caches.add(new Cache(i, cacheCapacity));
+            }
 
             // Decode and store the video sizes.
             int[] v = { 0 };

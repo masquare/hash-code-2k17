@@ -3,9 +3,6 @@ package com.rootbeer.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by martinmaritsch on 23/02/2017.
- */
 public class Datacenter {
   private List<Video> videos;
 
