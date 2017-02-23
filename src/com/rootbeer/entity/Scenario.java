@@ -140,4 +140,14 @@ public class Scenario {
       cache.addVideo(entry.getValue());
     }
   }
+
+  public long getLoadTimeForVideo(Endpoint endpoint, int videoID) {
+      long cacheDistance = caches.parallelStream()
+          .mapToLong(c -> c.containsVideo(videoID) ? endpoint.getDistanceToCache(c.getID()) : Long.MAX_VALUE)
+          .min()
+          .orElse(Long.MAX_VALUE);
+
+      return Long.min(cacheDistance, endpoint.getDistanceToDataCenter())
+
+  }
 }

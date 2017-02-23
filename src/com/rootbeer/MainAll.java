@@ -11,7 +11,7 @@ public class MainAll {
         }
 
         String[] files = new String[] {
-            //"kittens",
+            "kittens",
             "me_at_the_zoo",
             "trending_today",
             "videos_worth_spreading"
