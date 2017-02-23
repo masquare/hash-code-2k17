@@ -21,6 +21,7 @@ public class Scenario {
 
     public Scenario(String filename) throws IOException {
         datacenter = new Datacenter();
+        caches = new ArrayList<>();
         endpoints = new ArrayList<>();
 
         // Read from the input file.
@@ -29,31 +30,22 @@ public class Scenario {
 
             // Decode and store the global properties of the scenario.
             List<Integer> values = decodeInts(reader.readLine());
-            videoCount= values.get(0);
+            videoCount = values.get(0);
             endpointCount = values.get(1);
             requestCount = values.get(2);
             cacheCount = values.get(3);
             cacheCapacity = values.get(4);
 
-          System.out.println("videoCount = " + videoCount);
-          System.out.println("endpointCount = " + endpointCount);
-          System.out.println("requestCount = " + requestCount);
-          System.out.println("cacheCount = " + cacheCount);
-          System.out.println("cacheCapacity = " + cacheCapacity);
-
-            caches = new ArrayList<>();
-
-            for(int i = 0; i < cacheCount; i++) {
-              caches.add(new Cache(i, cacheCapacity));
+            // Create the caches.
+            for (int i = 0; i < cacheCount; i++) {
+                caches.add(new Cache(i, cacheCapacity));
             }
 
             // Decode and store the video sizes.
-            int[] v = { 0 };
+            int[] v = {0};
             Arrays.stream(reader.readLine().split(" "))
                     .map(Integer::decode)
-                    .forEach(size -> {
-                        datacenter.addVideo(new Video(v[0]++, size));
-                    });
+                    .forEach(size -> datacenter.addVideo(new Video(v[0]++, size)));
 
             // Decode and store each endpoint sequentially.
             for (int i = 0; i < endpointCount; i++) {
@@ -81,11 +73,11 @@ public class Scenario {
     public void calculate() {
       caches.parallelStream().forEach(c -> {
         try {
-          placeVideosInCache(datacenter.getVideos(), c, endpoints);
+            placeVideosInCache(datacenter.getVideos(), c, endpoints);
         } catch (Exception e) {
-          e.printStackTrace();
+            e.printStackTrace();
         }
-      });
+});
     }
 
   public void writeToFile(String fileName) throws IOException {
@@ -102,7 +94,7 @@ public class Scenario {
       System.out.println("Cache: " + c);
 
       // format: "<cacheid> <videoid_1> .. <videoid_n>"
-      String line = c.getId() + " ";
+      String line = c.getID() + " ";
 
       for(Video v : c.getVideos()) {
         line += v.getId() + " ";
@@ -129,8 +121,8 @@ public class Scenario {
 
       // TODO Bernd: useful score function
       double score = endpoints.parallelStream().mapToDouble(e -> {
-        if (e.isConnectedToCache(cache.getId())) {
-          return e.getRequestsForVideo(video.getId()) / e.getDistanceToCache(cache.getId());
+        if (e.isConnectedToCache(cache.getID())) {
+          return e.getRequestsForVideo(video.getId()) / e.getDistanceToCache(cache.getID());
         } else {
           return 0;
         }
