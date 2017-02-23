@@ -23,7 +23,6 @@ public class MainAll {
           scenario.calculate();
           scenario.writeToFile("res/" + file + ".txt");
           System.out.println("Finished " + file);
-          //System.out.println(scenario.calculateFinalScore());
         }
 
 

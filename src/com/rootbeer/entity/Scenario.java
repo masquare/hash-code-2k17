@@ -8,16 +8,16 @@ import java.util.stream.Collectors;
 
 public class Scenario {
 
-  public static List<Integer> decodeInts(String line) {
+  private static List<Integer> decodeInts(String line) {
     return Arrays.stream(line.split(" "))
         .map(Integer::decode)
         .collect(Collectors.toList());
   }
 
-  int videoCount, endpointCount, requestCount, cacheCount, cacheCapacity;
-  Datacenter datacenter;
-  ArrayList<Endpoint> endpoints;
-  ArrayList<Cache> caches;
+  private int videoCount, endpointCount, requestCount, cacheCount, cacheCapacity;
+  private Datacenter datacenter;
+  private ArrayList<Endpoint> endpoints;
+  private ArrayList<Cache> caches;
 
   public Scenario(String filename) throws IOException {
     datacenter = new Datacenter();
@@ -71,33 +71,6 @@ public class Scenario {
   }
 
   public void calculate() {
-      /*caches.parallelStream().forEach(c -> {
-        try {
-            placeVideosInCache(datacenter.getVideos(), c, endpoints);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-      });*/
-
-      /*caches.parallelStream().forEach(c -> {
-        try {
-          placeVideosInCacheRound2(datacenter.getVideos(), c, endpoints);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      });*/
-
-      /*for(int i = 0; i < 50; i++) {
-        System.out.println("i = " + i);
-        datacenter.getVideos().stream().forEach(v -> {
-          try {
-            placeVideoInCache(v);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        });
-      }*/
-
     TreeMap<Long, Video> popular = getMostPopularVideos();
 
     HashMap<Video, Long> counts = new HashMap<>();
@@ -111,13 +84,8 @@ public class Scenario {
     });
   }
 
-  public TreeMap<Long, Video> getMostPopularVideos() {
-    TreeMap<Long, Video> popularities = new TreeMap<>(new Comparator<Long>() {
-      @Override
-      public int compare(Long o1, Long o2) {
-        return (int) (o2 - o1);
-      }
-    });
+  private TreeMap<Long, Video> getMostPopularVideos() {
+    TreeMap<Long, Video> popularities = new TreeMap<>((o1, o2) -> (int) (o2 - o1));
 
     datacenter.getVideos().parallelStream().forEach(v -> {
           long sum = endpoints.parallelStream().mapToLong(e -> e.getRequestsForVideo(v.getId())).sum();
@@ -125,18 +93,11 @@ public class Scenario {
         }
     );
 
-    //popularities.forEach((k, v) -> System.out.println(v + "->" + k));
-
     return popularities;
   }
 
-  public void placePopularVideosInAllCaches(TreeMap<Long, Video> videos, HashMap<Video, Long> counts, Cache cache) throws Exception {
-    TreeMap<Long, Video> added = new TreeMap<>(new Comparator<Long>() {
-      @Override
-      public int compare(Long o1, Long o2) {
-        return (int) (o2 - o1);
-      }
-    });
+  private void placePopularVideosInAllCaches(TreeMap<Long, Video> videos, HashMap<Video, Long> counts, Cache cache) throws Exception {
+    TreeMap<Long, Video> added = new TreeMap<>((o1, o2) -> (int) (o2 - o1));
 
     System.out.println("placePopularVideosInAllCaches: " + cache.toString());
 
@@ -157,18 +118,6 @@ public class Scenario {
       videos.remove(entry.getKey(), entry.getValue());
       videos.put((long) ((15.0 + counts.get(entry.getValue())) / (130.0 + counts.get(entry.getValue())) * entry.getKey()), entry.getValue());
     }
-  }
-
-  public long calculateFinalScore() {
-    return endpoints.parallelStream().mapToLong(endpoint -> {
-      Set<Integer> videoIDs = endpoint.getRequests().keySet();
-      long score = 0;
-      for (Integer videoID : videoIDs) {
-        long loadtime = getLoadTimeForVideo(endpoint, videoID);
-        score += (endpoint.getDistanceToDataCenter() - loadtime) * endpoint.getRequestsForVideo(videoID);
-      }
-      return score;
-    }).sum();
   }
 
   public void writeToFile(String fileName) throws IOException {
@@ -197,89 +146,6 @@ public class Scenario {
 
     ps.flush();
     ps.close();
-  }
-
-  public void placeVideoInCache(Video video) throws Exception {
-    // scores is a map of score for a cache, score is highest for last element
-    TreeMap<Double, Cache> scores = new TreeMap<>();
-
-    caches.parallelStream().filter(c -> c.videoFits(video) && !c.containsVideo(video.getId())).forEach(cache -> {
-      double score = endpoints.parallelStream()
-          .filter(e -> e.isConnectedToCache(cache.getID()))
-          .mapToDouble(e -> e.getRequestsForVideo(video.getId()) / e.getDistanceToCache(cache.getID()))
-          .sum();
-      scores.put(score, cache);
-    });
-
-    if (!scores.isEmpty()) {
-      Map.Entry<Double, Cache> entry = scores.pollLastEntry();
-      entry.getValue().addVideo(video);
-    } else {
-      System.out.println("No cache found for video " + video);
-    }
-
-    //System.out.println("placeVideoInCache: " + entry.getValue().toString());
-  }
-
-
-  public void placeVideosInCache(List<Video> videos, Cache cache, List<Endpoint> endpoints) throws Exception {
-
-    System.out.println("placeVideosInCache: " + cache.toString());
-
-    // scores is a map of score for a video, score is highest for last element
-    TreeMap<Double, Video> scores = new TreeMap<>();
-
-    videos.parallelStream().filter(v -> cache.videoFits(v) && !cache.containsVideo(v.getId())).forEach(video -> {
-      // TODO Bernd: useful score function
-      double score = endpoints.parallelStream()
-          .filter(e -> e.isConnectedToCache(cache.getID()) && e.getRequestsForVideo(video.getId()) > 0)
-          .mapToDouble(e ->
-              e.getRequestsForVideo(video.getId())
-                  * Math.max(e.getDistanceToDataCenter() - e.getDistanceToCache(cache.getID()), 0)
-                  / video.getSize())
-          .sum();
-
-      scores.put(score, video);
-    });
-
-
-    while (!scores.isEmpty()) {
-      Map.Entry<Double, Video> entry = scores.pollLastEntry();
-      if (!cache.videoFits(entry.getValue()))
-        continue;
-
-      cache.addVideo(entry.getValue());
-    }
-  }
-
-  public void placeVideosInCacheRound2(List<Video> videos, Cache cache, List<Endpoint> endpoints) throws Exception {
-
-    System.out.println("placeVideosInCache2: " + cache.toString());
-
-    // scores is a map of score for a video, score is highest for last element
-    TreeMap<Double, Video> scores = new TreeMap<>();
-
-    videos.parallelStream().filter(v -> cache.videoFits(v) && !cache.containsVideo(v.getId())).forEach(video -> {
-      // TODO Bernd: useful score function
-      double score = endpoints.parallelStream()
-          .filter(e -> e.isConnectedToCache(cache.getID()) && e.getRequestsForVideo(video.getId()) > 0)
-          .mapToDouble(e ->
-              e.getRequestsForVideo(video.getId())
-                  * Math.max(getLoadTimeForVideo(e, video.getId()) - e.getDistanceToCache(cache.getID()), 0)
-                  / video.getSize())
-          .sum();
-
-      scores.put(score, video);
-    });
-
-
-    while (!scores.isEmpty()) {
-      Map.Entry<Double, Video> entry = scores.pollLastEntry();
-      if (!cache.videoFits(entry.getValue()))
-        continue;
-
-      cache.addVideo(entry.getValue());
-    }
   }
 
   public long getLoadTimeForVideo(Endpoint endpoint, int videoID) {
