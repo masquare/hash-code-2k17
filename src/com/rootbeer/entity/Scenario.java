@@ -1,32 +1,78 @@
 package com.rootbeer.entity;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
+import java.util.stream.Collectors;
+
 public class Scenario {
 
-  private List<Cache> caches;
-
-    private Scenario() {}
-
-    public void calculate() throws Exception {
-
+    public static List<Integer> decodeInts(String line) {
+        return Arrays.stream(line.split(" "))
+                .map(Integer::decode)
+                .collect(Collectors.toList());
     }
 
-    public static Scenario parseFromFile(String filename) throws IOException {
-        Scenario scenario = new Scenario();
+    int videoCount, endpointCount, requestCount, cacheCount, cacheCapacity;
+    Datacenter datacenter;
+    ArrayList<Endpoint> endpoints;
 
-        List<String> lines = Files.readAllLines(Paths.get(filename));
-        for (String line : lines) {
-            // ...
+    public Scenario(String filename) throws IOException {
+        datacenter = new Datacenter();
+        endpoints = new ArrayList<>();
+
+        // Read from the input file.
+        try (FileInputStream inputStream = new FileInputStream(new File(filename))) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            // Decode and store the global properties of the scenario.
+            List<Integer> values = decodeInts(reader.readLine());
+            videoCount= values.get(0);
+            endpointCount = values.get(1);
+            requestCount = values.get(2);
+            cacheCount = values.get(3);
+            cacheCapacity = values.get(4);
+
+            // Decode and store the video sizes.
+            int[] v = { 0 };
+            Arrays.stream(reader.readLine().split(" "))
+                    .map(Integer::decode)
+                    .forEach(size -> {
+                        datacenter.addVideo(new Video(v[0]++, size));
+                    });
+
+            // Decode and store each endpoint sequentially.
+            for (int i = 0; i < endpointCount; i++) {
+                values = decodeInts(reader.readLine());
+                Endpoint endpoint = new Endpoint(values.get(0));
+                int connectedCaches = values.get(1);
+                for (int j = 0; j < connectedCaches; j++) {
+                    values = decodeInts(reader.readLine());
+                    endpoint.setDistanceToCache(values.get(0), values.get(1));
+                }
+                endpoints.add(endpoint);
+            }
+
+            // Decode and store each request in the relevant endpoint.
+            for (int i = 0; i < requestCount; i++) {
+                values = decodeInts(reader.readLine());
+                endpoints.get(values.get(1)).setRequests(values.get(0), values.get(2));
+            }
+
+            // We should now be at the end of the file.
+            assert reader.read() == -1;
         }
+    }
 
-        return scenario;
+    public void calculate() {
+
     }
 
     public void writeToFile(String fileName) throws IOException {

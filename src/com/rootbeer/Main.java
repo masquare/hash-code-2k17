@@ -10,7 +10,7 @@ public class Main {
             return;
         }
 
-        Scenario scenario = Scenario.parseFromFile(args[0]);
+        Scenario scenario = new Scenario(args[0]);
         scenario.calculate();
         scenario.writeToFile(args[1]);
         
