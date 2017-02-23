@@ -35,6 +35,12 @@ public class Scenario {
             cacheCount = values.get(3);
             cacheCapacity = values.get(4);
 
+          System.out.println("videoCount = " + videoCount);
+          System.out.println("endpointCount = " + endpointCount);
+          System.out.println("requestCount = " + requestCount);
+          System.out.println("cacheCount = " + cacheCount);
+          System.out.println("cacheCapacity = " + cacheCapacity);
+
             caches = new ArrayList<>();
 
             for(int i = 0; i < cacheCount; i++) {
@@ -73,7 +79,7 @@ public class Scenario {
     }
 
     public void calculate() {
-      caches.forEach(c -> {
+      caches.parallelStream().forEach(c -> {
         try {
           placeVideosInCache(datacenter.getVideos(), c, endpoints);
         } catch (Exception e) {
@@ -111,12 +117,15 @@ public class Scenario {
   }
 
   public void placeVideosInCache(List<Video> videos, Cache cache, List<Endpoint> endpoints) throws Exception {
+
+    System.out.println("placeVideosInCache: " + cache.toString());
+
     // scores is a map of score for a video, score is highest for last element
     TreeMap<Double, Video> scores = new TreeMap<>();
 
-    for (Video video : videos) {
+    videos.parallelStream().forEach(video -> {
       if (!cache.videoFits(video))
-        continue;
+        return;
 
       // TODO Bernd: useful score function
       double score = endpoints.parallelStream().mapToDouble(e -> {
@@ -128,7 +137,8 @@ public class Scenario {
       }).sum();
 
       scores.put(score, video);
-    }
+    });
+
 
     while(!scores.isEmpty()) {
       Map.Entry<Double, Video> entry = scores.pollLastEntry();
