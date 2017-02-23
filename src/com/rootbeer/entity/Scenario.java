@@ -86,7 +86,7 @@ public class Scenario {
             Set<Integer> videoIDs = endpoint.getRequests().keySet();
             for (Integer videoID: videoIDs){
                 long loadtime = getLoadTimeForVideo(endpoint, videoID);
-                score += (endpoint.getDistanceToDataCenter() - loadtime);
+                score += (endpoint.getDistanceToDataCenter() - loadtime) * endpoint.getRequestsForVideo(videoID);
             }
         }
         return score;
