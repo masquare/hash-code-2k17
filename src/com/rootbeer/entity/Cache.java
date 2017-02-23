@@ -7,10 +7,12 @@ import java.util.List;
  * Created by martinmaritsch on 23/02/2017.
  */
 public class Cache {
+  private int id;
   private int size;
   private List<Video> videos;
 
-  public Cache(int size) {
+  public Cache(int id, int size) {
+    this.id = id;
     this.size = size;
     this.videos = new ArrayList<>();
   }
@@ -28,6 +30,14 @@ public class Cache {
 
   public boolean removeVideo(Video video) {
     return videos.remove(video);
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 
   public int getSize() {

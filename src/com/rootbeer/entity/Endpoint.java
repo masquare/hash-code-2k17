@@ -28,4 +28,8 @@ public class Endpoint {
     public int getDistanceToDataCenter(){
         return distanceToDataCenter;
     }
+
+    public boolean isConnectedToCache(int cacheServerID) {
+        return cacheDistances[cacheServerID] != -1;
+    }
 }
