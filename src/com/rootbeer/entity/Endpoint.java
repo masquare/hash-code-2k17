@@ -26,7 +26,7 @@ public class Endpoint {
     }
 
     public boolean isConnectedToCache(int cacheServerID) {
-        return getDistanceToCache(cacheServerID) != -1;
+        return cacheDistances.containsKey(cacheServerID);
     }
 
     public void setRequests(int video, int quantity) {

@@ -11,6 +11,7 @@ public class Main {
     }
 
     Scenario scenario = new Scenario(args[0]);
+
     scenario.calculate();
     scenario.writeToFile(args[1]);
 
