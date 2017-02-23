@@ -147,7 +147,7 @@ public class Scenario {
           .min()
           .orElse(Long.MAX_VALUE);
 
-      return Long.min(cacheDistance, endpoint.getDistanceToDataCenter())
+      return Long.min(cacheDistance, endpoint.getDistanceToDataCenter());
 
   }
 }
