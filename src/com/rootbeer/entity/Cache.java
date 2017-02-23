@@ -52,6 +52,15 @@ public class Cache {
     return videos;
   }
 
+  public boolean containsVideo(int id){
+    for(Video vid: videos){
+      if (vid.getId() == id) {
+        return true;
+      }
+      return false;
+    }
+  }
+
   public void setVideos(List<Video> videos) throws Exception {
     if(videos.stream().mapToInt(Video::getSize).sum() > this.size)
       throw new Exception("Videos do not fit in");
