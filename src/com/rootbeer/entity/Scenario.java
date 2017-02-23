@@ -9,34 +9,30 @@ import java.util.*;
 
 public class Scenario {
 
+    private Scenario() {}
 
-  private Scenario() {
-  }
+    public void calculate() throws Exception {
 
-  public void calculate() throws Exception {
+    }
 
-  }
+    public static Scenario parseFromFile(String filename) throws IOException {
+        Scenario scenario = new Scenario();
 
-  public static Scenario parseFromFile(String filename) throws IOException {
-    Scenario scenario = new Scenario();
+        List<String> lines = Files.readAllLines(Paths.get(filename));
+        for (String line : lines) {
+            // ...
+        }
 
-    List<String> lines = Files.readAllLines(Paths.get(filename));
+        return scenario;
+    }
 
-    Iterator<String> linesIt = lines.iterator();
+    public void writeToFile(String fileName) throws IOException {
+        PrintStream ps = new PrintStream(new FileOutputStream(fileName));
 
-    String foo = linesIt.next();
-    //...
+        // Get command count.
+        ps.println("Hello World");
 
-    return scenario;
-  }
-
-  public void writeToFile(String fileName) throws IOException {
-    PrintStream ps = new PrintStream(new FileOutputStream(fileName));
-
-    // GET COMMAND COUNT
-    ps.println("Hello World");
-
-    ps.flush();
-    ps.close();
-  }
+        ps.flush();
+        ps.close();
+    }
 }

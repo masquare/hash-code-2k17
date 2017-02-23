@@ -1,4 +1,3 @@
-
 package com.rootbeer;
 
 import com.rootbeer.entity.Scenario;
@@ -7,8 +6,10 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if(args.length != 2) {
-            System.out.println("Usage: <executable.jar> <inputfile> <outputfile>");
+            System.out.println("Usage: executable.jar <inputfile> <outputfile>");
+            return;
         }
+
         Scenario scenario = Scenario.parseFromFile(args[0]);
         scenario.calculate();
         scenario.writeToFile(args[1]);
