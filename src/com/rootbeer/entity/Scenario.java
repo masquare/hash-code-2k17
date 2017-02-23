@@ -80,6 +80,18 @@ public class Scenario {
 });
     }
 
+    public long calculateFinalScore(){
+        long score = 0;
+        for (Endpoint endpoint: endpoints){
+            Set<Integer> videoIDs = endpoint.getRequests().keySet();
+            for (Integer videoID: videoIDs){
+                long loadtime = getLoadTimeForVideo(endpoint, videoID);
+                score += (endpoint.getDistanceToDataCenter() - loadtime);
+            }
+        }
+        return score;
+    }
+
   public void writeToFile(String fileName) throws IOException {
     PrintStream ps = new PrintStream(new FileOutputStream(fileName));
 
