@@ -42,4 +42,8 @@ public class Endpoint {
     public int[] getRequests(){
         return this.requests;
     }
+
+    public boolean isConnectedToCache(int cacheServerID) {
+        return cacheDistances[cacheServerID] != -1;
+    }
 }
