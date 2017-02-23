@@ -53,12 +53,7 @@ public class Cache {
   }
 
   public boolean containsVideo(int id){
-    for(Video vid: videos){
-      if (vid.getId() == id) {
-        return true;
-      }
-      return false;
-    }
+    return videos.parallelStream().anyMatch(v -> v.getId() == id);
   }
 
   public void setVideos(List<Video> videos) throws Exception {
@@ -66,5 +61,15 @@ public class Cache {
       throw new Exception("Videos do not fit in");
 
     this.videos = videos;
+  }
+
+  @Override
+  public String toString() {
+    return "Cache{" +
+        "id=" + id +
+        ", size=" + size +
+        ", filled=" + videos.stream().mapToInt(Video::getSize).sum() +
+        ", videos=" + videos.size() +
+        '}';
   }
 }

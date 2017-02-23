@@ -1,12 +1,6 @@
 package com.rootbeer.entity;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -23,6 +17,7 @@ public class Scenario {
     int videoCount, endpointCount, requestCount, cacheCount, cacheCapacity;
     Datacenter datacenter;
     ArrayList<Endpoint> endpoints;
+    ArrayList<Cache> caches;
 
     public Scenario(String filename) throws IOException {
         datacenter = new Datacenter();
@@ -39,6 +34,12 @@ public class Scenario {
             requestCount = values.get(2);
             cacheCount = values.get(3);
             cacheCapacity = values.get(4);
+
+            caches = new ArrayList<>();
+
+            for(int i = 0; i < cacheCount; i++) {
+              caches.add(new Cache(i, cacheCapacity));
+            }
 
             // Decode and store the video sizes.
             int[] v = { 0 };
@@ -72,29 +73,69 @@ public class Scenario {
     }
 
     public void calculate() {
-
+      caches.forEach(c -> {
+        try {
+          placeVideosInCache(datacenter.getVideos(), c, endpoints);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      });
     }
 
-    public void writeToFile(String fileName) throws IOException {
-        PrintStream ps = new PrintStream(new FileOutputStream(fileName));
+  public void writeToFile(String fileName) throws IOException {
+    PrintStream ps = new PrintStream(new FileOutputStream(fileName));
 
-        // filter unused caches
-        Stream<Cache> usedCaches = caches.parallelStream().filter(c -> !c.getVideos().isEmpty());
+    // filter unused caches
+    //Stream<Cache> usedCaches = caches.stream().filter(c -> !c.getVideos().isEmpty());
 
-        // print used cache count
-        ps.println(usedCaches.count());
+    // print used cache count
+    ps.println(caches.stream().filter(c -> !c.getVideos().isEmpty()).count());
 
-        usedCaches.forEach(c -> {
-          // format: "<cacheid> <videoid_1> .. <videoid_n>"
-          String line = c.getId() + " ";
+    caches.stream().filter(c -> !c.getVideos().isEmpty()).forEach(c -> {
 
-          c.getVideos().forEach(v -> ps.print(v.getId() + " "));
+      System.out.println("Cache: " + c);
 
-          line = line.substring(0, line.length() - 1); // remove last space
-          ps.println(line);
-        });
+      // format: "<cacheid> <videoid_1> .. <videoid_n>"
+      String line = c.getId() + " ";
 
-        ps.flush();
-        ps.close();
+      for(Video v : c.getVideos()) {
+        line += v.getId() + " ";
+      }
+
+      line = line.substring(0, line.length() - 1); // remove last space
+      ps.println(line);
+    });
+
+    ps.flush();
+    ps.close();
+  }
+
+  public void placeVideosInCache(List<Video> videos, Cache cache, List<Endpoint> endpoints) throws Exception {
+    // scores is a map of score for a video, score is highest for last element
+    TreeMap<Double, Video> scores = new TreeMap<>();
+
+    for (Video video : videos) {
+      if (!cache.videoFits(video))
+        continue;
+
+      // TODO Bernd: useful score function
+      double score = endpoints.parallelStream().mapToDouble(e -> {
+        if (e.isConnectedToCache(cache.getId())) {
+          return e.getRequestsForVideo(video.getId()) / e.getDistanceToCache(cache.getId());
+        } else {
+          return 0;
+        }
+      }).sum();
+
+      scores.put(score, video);
     }
+
+    while(!scores.isEmpty()) {
+      Map.Entry<Double, Video> entry = scores.pollLastEntry();
+      if(!cache.videoFits(entry.getValue()))
+        continue;
+
+      cache.addVideo(entry.getValue());
+    }
+  }
 }

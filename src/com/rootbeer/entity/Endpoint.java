@@ -3,18 +3,14 @@ package com.rootbeer.entity;
 import java.util.HashMap;
 
 public class Endpoint {
-    private int distanceToDatacenter;
+    private int distanceToDataCenter;
     private HashMap<Integer, Integer> cacheDistances;
     private HashMap<Integer, Integer> requests;
 
-    public Endpoint(int distanceToDatacenter) {
-        this.distanceToDatacenter = distanceToDatacenter;
+    public Endpoint(int dataServerDistance) {
+        distanceToDataCenter = dataServerDistance;
         cacheDistances = new HashMap<>();
         requests = new HashMap<>();
-    }
-
-    public int getDistanceToDatacenter() {
-        return distanceToDatacenter;
     }
 
     public void setDistanceToCache(int cache, int distance) {
@@ -38,10 +34,26 @@ public class Endpoint {
     }
 
     public int getRequests(int video) {
-        if (requests.containsKey(video)) {
-            return requests.get(video);
-        } else {
-            return 0;
-        }
+      if (requests.containsKey(video)) {
+        return requests.get(video);
+      } else {
+        return 0;
+      }
+    }
+
+    public int getDistanceToDataCenter(){
+        return distanceToDataCenter;
+    }
+
+    public HashMap<Integer, Integer> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(HashMap<Integer, Integer> requests) {
+        this.requests = requests;
+    }
+
+    public int getRequestsForVideo(int id) {
+        return requests.getOrDefault(id, 0);
     }
 }
